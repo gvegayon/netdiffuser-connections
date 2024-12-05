@@ -2,14 +2,18 @@
 title: "A NetdiffuseR Tutorial: Estimating Network Influences on Behavior within the Diffusion Paradigm"
 format:
   pdf:
-    documentclass: apa7
-editor: visual
+    classoption:
+      - twocolumn
 keep-tex: true
+bibliography: bibliography.bib
 author: 
   - name: George G. Vega Yon
+    affiliation: University of Utah
   - name: Aníbal L. Olivera M.
+    affiliation: Universidad del Desarrollo
   - name: Thomas W. Valente
-bibliography: bibliography.bib
+    affiliation: University of Southern California
+# include-in-header: header.tex
 ---
 
 ```{r}
@@ -20,6 +24,8 @@ options(width = 45)
 ```
 
 
+# Introduction
+
 This paper provides a general overview of the R package, netdiffuseR, a library for estimating contagion and diffusion processes on networks. We provide a brief introduction to diffusion of innovations theory, introduce netdiffuseR, provide a tutorial for empirical work, and examples of simulations. We also describe ways to analyze multiple simultaneous behavior diffusion such as adoption of complementary or competing products. Lastly we demonstrate how to model disadoption. This paper demonstrates how to use the netdiffuseR package to read, analyze, visualize, and simulate diffusion networks.
 
 Diffusion of innovations is a theoretical approach that explains how new ideas and practices spread within and between communities. Diffusion of innovations theory has been used to study the spread of: fertility preferences and contraceptive choices (Bongaarts & Watkins, 1996; Valente et al., 1997); risk behaviors such as smoking (Christakis & Fowler, 2007); alcohol use (Light, et al., 2013); substance use (Valente et al., 2006; 2013); physician behavior (Coleman et al., 1966; Iyengar, et al., 2011); public health policies (Valente, et al., 2015; Yamagata et al., 2017); physical activity (Aral & Nicolaides, 2017); among other behaviors. Thus, developing a platform to easily analyze and compare factors associated with network influences on adoption has broad applicability in the behavioral and physical sciences.
@@ -27,7 +33,11 @@ Diffusion of innovations is a theoretical approach that explains how new ideas a
 Diffusion theory states that a new idea or practice enters a community or population from some external source such as an impersonal medium, a person from another community, or a technological shift (Rogers, 2003; Valente, 1995).  The idea or practice then spreads from person to person through interpersonal communication. Thus, the theory and techniques of social network analysis are integral to the study of the diffusion of innovations (Valente, 2010), and constitute the field of diffusion networks.
 
 The workhorse variable used to measure network influences on adoption is network exposure which is the number or proportion of adopters in a person’s immediate social network contemporaneously or lagged by one (or more) time periods (which depending on the study could be days, months, or years). The formula for the lagged exposure model is:
-Eit= i ≠jWijaj(t-1)i ≠jWi+                                                                                     (1)
+
+$$
+E_{it} = \frac{\sum_{i\neq j}W_{ij}a_{j(t-1)}}{\sum_{i\neq j}W_{i+}}
+$$
+
 
 Where $W_{ij}$ is a weight matrix indicating ties between individuals, most commonly a binary adjacency matrix such as who is friends with whom but can be any relation; a is an adoption vector indicating which of i’s j alters had adopted at time t-1; and the denomitor is the row sum, the number of outgoing ties. Eit in (1) measures the proportion of a person’s ties at time t who have adopted the behavior at the prior time period, which is a contagion measure. As described in Valente (2024), however, there can be many extensions of the exposure calculation by estimating influence of ties based on: a count (removing the denominator), indirect connectivity, structural equivalence, strength (weak vs. strong), Simmelian relations (alter-to-alter), alter network properties such as centrality, etc. NetdiffuseR enables users to calculate these alternative exposures with a parameter toggle in the exposure function.
 
@@ -218,11 +228,11 @@ and in that case, for two behaviors, they are named `‘behavior_name’`_1 and 
 ```{r}
 #| label: simulation-multiadoption-process-6
 diffnet_6 <- rdiffnet(
-  n, t, seed.p.adopt = list(0.1, 0.15),
-  threshold.dist = list(runif(n, .3,.5), runif(n, .2,.4)),
-  seed.nodes = list('central', 'random'),
-  behavior = list('tobacco', 'alcohol')
-  )
+ n, t, seed.p.adopt = list(0.1, 0.15),
+ threshold.dist = list(runif(n, .3,.5), runif(n, .2,.4)),
+ seed.nodes = list('central', 'random'),
+ behavior = list('tobacco', 'alcohol')
+ )
 
 diffnet_6
 ```
@@ -245,7 +255,7 @@ diffnet
 As adoption booms are commonly followed by periods of decline —riots come to an end, new fashions go out of style, and juicy gossip turns to stale news—, considering the disadoption of an innovation or behavior is essential for studying significant aspects of competition between products or beliefs [CITE, Lehman]. The `rdiffnet` function includes the `disadopt` parameter to add a disadoption function, facilitating such analyses and enabling the testing of some theoretical models for disadoption [CITE, Alipour]. For example, we can build a function that generates a random disadoption at time `t` by choosing 10% of those adopters at time `t-1`:
 
 ```{r}
-#| label: disadoption-example
+#| label: disadoption-example-1
 set.seed(1231)
 
 graph <- rgraph_ws(n, t, p=.3)
@@ -275,7 +285,7 @@ diffnet_7
 And, as a second example, we can build a disadoption function that prevents the nodes from adopting more than one behavior if `rdiffnet` simulates two of them:
 
 ```{r}
-#| label: disadoption example
+#| label: disadoption-example-2
 
 one_only <- function(expo, cumadopt, time) {
 
