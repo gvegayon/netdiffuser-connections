@@ -1,0 +1,4 @@
+_extensions/
+paper.*
+!paper.qmd
+paper_files
