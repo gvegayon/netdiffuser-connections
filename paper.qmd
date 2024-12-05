@@ -135,9 +135,7 @@ The Moran’s I statistic is computed with the inverse of the geodesic matrix (s
 
 Of the observed outcomes, it is noteworthy that (a) the diffusion process is apparent in the figure, with adoptions occurring from core to periphery of the graph and (b) Moran’s I shows a high-level of spatial autocorrelation between periods four and ten. Other visualization functions include `plot_diffnet2`, `plot_threshold`, `plot_adopters`, and `plot_infectsuscept`. We invite the reader to learn more about them in the manual of the netidffuseR R package.
 
-
 ## Computing exposures
-
 
 Exposures are a fundamental part of estimating diffusion network effects. Consequently, netdiffuseR provides a wide range of possibilities when it comes to calculating exposures. Using the `exposure` function, users can calculate cohesion (direct ties) and structural equivalence exposures (@burt_1987), attribute weighted exposure, tie-weighted exposure, count exposure (instead of proportion), and many more. The following code block shows how to calculate three different types of exposure:
 
@@ -175,19 +173,18 @@ Where $\|x_i-x_j\|$ is L-2 norm between $i$ and $j$'s age. The following code bl
 ```{r}
 #| label: age-homophilic-exp
 # Using homophilic distance
-exp_age_homo <- vertex_covariate_compare(
+exp_age_homo_graph <- vertex_covariate_compare(
  graph   = kfam_diffnet$graph[[1]],
  X       = cbind(kfam_diffnet[["age"]]),
  funname = "distance"
 )
 
-
 # Inverting the values
-exp_age_homo@x <- 1/exp_age_homo@x
-
+exp_age_homo_graph@x <- 1/exp_age_homo_graph@x
 
 exp_age_homo <- exposure(
- kfam_diffnet, alt.graph = exp_age_homo,
+ kfam_diffnet,
+ alt.graph = exp_age_homo_graph,
  valued = TRUE
  )
 
@@ -204,6 +201,32 @@ cbind(
 
 In sum, the `exposure` function in the package provides a great deal of flexibility for calculating a wide range of exposures. Computing exposures is a fundamental task in the study of diffusion networks. A more in-depth treatment of network exposures is given in (@Valente2024).
 
+## Fitting a lagged exposure model
+
+A natural step after computing exposures is estimating lagged exposure models. The most common approach is fitting a logistic regression that predicts the adoption of a behavior as a function of the nodes' features and lagged exposure. The netdiffuseR package has a number of tools to facilitate this process, but maybe the most useful is the `diffreg` function. The following code shows how to fit a diffusion model using the default exposure calculation:
+
+```{r}
+#| label: diffreg
+diffreg(kfam_diffnet ~ exposure) |>
+  summary()
+```
+
+We can go further and add more features from the Korean family dataset, including computing more complex exposures as we did before:
+
+```{r}
+#| label: diffreg-2
+#| warning: false
+diffreg(
+  kfam_diffnet ~ age + factor(village) +
+    exposure(
+      alt.graph = exp_age_homo_graph,
+      valued = TRUE
+      )
+  ) |>
+  summary()
+```
+
+As you can see, we can pass arguments to the `exposure` function on the fly, including using the R's formula interface which is commonly used with the `glm` function in the package. More details about what happens when calling the `diffreg` function can be found in the function's manual.
 
 ## Simulating diffusion networks
 
