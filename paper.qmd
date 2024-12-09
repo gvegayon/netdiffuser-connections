@@ -1,10 +1,10 @@
 ---
 title: "A NetdiffuseR Tutorial: Estimating Network Influences on Behavior within the Diffusion Paradigm"
-format:
-  acs-pdf:
-    keep-tex: true  
+format: pdf
 keep-tex: true
 bibliography: bibliography.bib
+bibliographystyle: apa
+link-citations: true
 author: 
   - name: George G. Vega Yon
     affiliation:
@@ -25,6 +25,14 @@ author:
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 options(digits=4)
 ```
+
+# Acknowledgements
+
+This work was supported by the National Institute of Drug Abuse, the National Institutes of Health (NIH), grant number R01-DA051843.
+
+# Abstract
+
+This paper introduces diffusion network research and presents an R library, netdiffuseR, that facilitates the estimation of contagion and diffusion processes on networks. Diffusion of innovations theory explains how new ideas and practices spread within and between communities. The spreading process consists of person-to-person interactions in which adopters persuade (by whatever means) non-adopters to adopt. Estimating these effects requires network data and an indicator for when each person adopts. The analytic steps involve creating an event history version of the data set and regression estimation to determine if exposure, the adopters in one’s network, is associated with individual adoption. NetdiffuseR automates many of these data management and processing steps, thus facilitating the estimation of these models. The package also contains simple ways to compute various network exposure measures such as based on structural equivalence, indirect ties, homophilic ties, etc. In addition, netdiffuseR provides capabilities to conduct simulations of network diffusion processes varying network structure, seed conditions, threshold distributions, and influence mechanisms. The paper includes example code for both empirical and simulated network studies. We aim to facilitate the adoption of netdiffuseR to advance the growth and evolution of diffusion network research. 
 
 # Introduction
 
@@ -335,7 +343,7 @@ The disadoption feature included in **netdiffuseR** version 1.24.0 opened a new 
 
 1. It must be a function that receives three arguments: `expo`, `cumadopt`, and `time`.
 
-2. It must return a list with two elements: the first element is a vector with the nodes that will disadopt, and the second element is a vector with the nodes that will adopt.
+2. It must return a list with as many elements as behaviors there are: It should list which nodes are dropping behaviors. For instance, if only node `1` (one) is dropping behavior one of three, it should return `list(1, integer(), integer())`.
 
 3. If there are no nodes to disadopt or adopt, the function must return an empty vector (`integer()`).
 
