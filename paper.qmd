@@ -1,5 +1,5 @@
 ---
-title: "A NetdiffuseR Tutorial: Estimating Network Influences on Behavior within the Diffusion Paradigm"
+title: "A netdiffuseR Tutorial: Estimating Network Influences on Behavior within the Diffusion Paradigm"
 format: pdf
 keep-tex: true
 bibliography: bibliography.bib
@@ -32,7 +32,7 @@ This work was supported by the National Institute of Drug Abuse, the National In
 
 # Abstract
 
-This paper introduces diffusion network research and presents an R library, netdiffuseR, that facilitates the estimation of contagion and diffusion processes on networks. Diffusion of innovations theory explains how new ideas and practices spread within and between communities. The spreading process consists of person-to-person interactions in which adopters persuade (by whatever means) non-adopters to adopt. Estimating these effects requires network data and an indicator for when each person adopts. The analytic steps involve creating an event history version of the data set and regression estimation to determine if exposure, the adopters in one’s network, is associated with individual adoption. NetdiffuseR automates many of these data management and processing steps, thus facilitating the estimation of these models. The package also contains simple ways to compute various network exposure measures such as based on structural equivalence, indirect ties, homophilic ties, etc. In addition, netdiffuseR provides capabilities to conduct simulations of network diffusion processes varying network structure, seed conditions, threshold distributions, and influence mechanisms. The paper includes example code for both empirical and simulated network studies. We aim to facilitate the adoption of netdiffuseR to advance the growth and evolution of diffusion network research. 
+This paper introduces diffusion network research and presents an R library, netdiffuseR, that facilitates the estimation of contagion and diffusion processes on networks. Diffusion of innovations theory explains how new ideas and practices spread within and between communities. The spreading process consists of person-to-person interactions in which adopters persuade (by whatever means) non-adopters to adopt. Estimating these effects requires network data and an indicator for when each person adopts. The analytic steps involve creating an event history version of the data set and regression estimation to determine if exposure, the adopters in one’s network, is associated with individual adoption. netdiffuseR automates many of these data management and processing steps, thus facilitating the estimation of these models. The package also contains simple ways to compute various network exposure measures such as based on structural equivalence, indirect ties, homophilic ties, etc. In addition, netdiffuseR provides capabilities to conduct simulations of network diffusion processes varying network structure, seed conditions, threshold distributions, and influence mechanisms. The paper includes example code for both empirical and simulated network studies. We aim to facilitate the adoption of netdiffuseR to advance the growth and evolution of diffusion network research. 
 
 # Introduction
 
@@ -45,10 +45,10 @@ Diffusion theory states that a new idea or practice enters a community or popula
 The workhorse variable used to measure network influences on adoption is network exposure which is the number or proportion of adopters in a person’s immediate social network contemporaneously or lagged by one (or more) time periods (which depending on the study could be days, months, or years). The formula for the lagged exposure model is:
 
 $$
-E_{it} = \frac{\sum_{i\neq j}W_{ij}a_{j(t-1)}}{\sum_{i\neq j}W_{i+}}
+E_{it} = \frac{\sum_{i\neq j}W_{ij}a_{j(t-1)}}{\sum_{i\neq j}W_{ij}}
 $$
 
-Where $W_{ij}$ is a weight matrix indicating ties between individuals, most commonly a binary adjacency matrix such as who is friends with whom but can be any relation; $a$ is an adoption vector indicating which of $i$’s $j$ alters had adopted at time $t - 1$; and the denominator is the row sum, the number of outgoing ties. $E_{it}$ in (1) measures the proportion of a person’s ties at time $t$ who have adopted the behavior at the prior time period, which is a contagion measure. As described in @Valente2024, however, there can be many extensions of the exposure calculation by estimating influence of ties based on: a count (removing the denominator), indirect connectivity, structural equivalence, strength (weak vs. strong), homophily, Simmelian relations (alter-to-alter), alter network properties such as centrality, etc. NetdiffuseR enables users to calculate these alternative exposures with a parameter toggle in the exposure function.
+Where $W_{ij}$ is a weight matrix indicating ties between individuals, most commonly a binary adjacency matrix such as who is friends with whom but can be any relation; $a$ is an adoption vector indicating which of $i$’s $j$ alters had adopted at time $t - 1$; and the denominator is the row sum, the number of outgoing ties. $E_{it}$ in (1) measures the proportion of a person’s ties at time $t$ who have adopted the behavior at the prior time period, which is a contagion measure. As described in @Valente2024, however, there can be many extensions of the exposure calculation by estimating influence of ties based on: a count (removing the denominator), indirect connectivity, structural equivalence, strength (weak vs. strong), homophily, Simmelian relations (alter-to-alter), alter network properties such as centrality, etc. netdiffuseR enables users to calculate these alternative exposures with a parameter toggle in the exposure function.
 
 There are other measures needed to estimate diffusion network effects. Network thresholds [@valente_threshold_1996] are the proportion or number of adopters in an individual's network needed for them to adopt. Generally, adoption thresholds coincide with their exposure at the time of adoption, nonetheless, because of timing, exposure can overestimate thresholds. Unless data collection happens in real time, some error is expected as people may reach their adoption threshold earlier. For instance, if a person has a threshold of two connections, but three of its peers adopt simultaneously, then their exposure at the time of adoption will be three, but their threshold was two [see @berryOpacityProblemSocial2019 for a detailed discussion on the topic.]. 
 
@@ -56,7 +56,7 @@ Some people innovate with none or few adopters in their network adopting whereas
 
 # The netdiffuseR package
 
-The netdiffuseR R package [@netdiffuser_1; @netdiffuser_2] was first released to CRAN on February 18, 2016. The package contains a collection of algorithms and methods first envisioned by Dr. Valente and released in his book [@valente_book_1999] as GAUSS code. Since its release in 2016, the package has been downloaded over 45 thousand times and has about 400 hundred downloads a month, with an active community growing.
+The netdiffuseR R package [@netdiffuser_1; @netdiffuser_2] was first released to CRAN on February 18, 2016. The package contains a collection of algorithms and methods first envisioned by Dr. Valente and released in his book [@valente_book_1999] as GAUSS code. Since its release in 2016, the package has been downloaded over 45 thousand times and has about 400 downloads a month, with an active community growing.
 
 In a nutshell, netdiffuseR provides methods for simulating, processing, analyzing, and visualizing diffusion networks. Among its key functions are the `survey_to_diffnet()` function, `rdiffnet()` function, and the `exposure()` function. The `survey_to_diffnet()` function provides an interface to read in tabular data (in R `data.frame` format) corresponding to survey data containing network nominations and time of adoption [TOA]. The function makes it easy to process survey data, pass multiple checks, and build the adoption and cumulative adoption matrices. The `rdiffnet()` function allows simulating diffusion networks using the threshold model and, since version 1.23.0, simulating multi-diffusion and disadoption. Users can simulate diffusion processes on pre-defined networks or random graphs in a computationally efficient way. Finally, the `exposure()` function–the workhorse of the R package–provides a flexible framework for calculating various types of exposure measures as indicated above. In the following section of the paper, we will provide a demonstration of these functions.
 
@@ -116,7 +116,7 @@ The key things to notice from this code are: (1) We have to specify the “id”
 
 Another thing to note are the warnings. The R programming language (like most do) distinguishes between decimal ("`numeric`") and integer numbers. In this case, the function is throwing a warning about columns beign coerced from numeric into integer types. These are mostly informative, and if the user rather skipping these, they can use the `suppressWarnings()` function in R. We will see more warnings as we execute R code and will pause at some points to discuss further about what these mean to the user.
 
-The `diffnet` object we just created has various inspection methods. The print method gives a glimpse of the data, indicating the number of time points, nodes, type of network, and adoption prevalence, among other things. The summary method provides information about the adoption dynamics; it shows the number and proportion of adopters at each time point, network density, and Moran’s I [@moran_1950] indicating the level of spatial correlation. Finally, the `plot_diffnet()` function visualizes the diffusion process which colors nodes according to their adoption status, non-adopter, new adopter, and continuing adopter. The following code-chunk shows how to call these functions:
+The `diffnet` object we just created has various inspection methods. The print method gives a glimpse of the data, indicating the number of time points, nodes, type of network, and adoption prevalence, among other things. The `summary` method provides information about the adoption dynamics; it shows the number and proportion of adopters at each time point, network density, and Moran’s I [@moran_1950] indicating the level of spatial correlation. Finally, the `plot_diffnet()` function visualizes the diffusion process which colors nodes according to their adoption status, non-adopter, new adopter, and continuing adopter. The following code-chunk shows how to call these functions:
 
 ```{r}
 #| label: diffnet-methods
@@ -156,7 +156,7 @@ cbind(
 ) |> head()
 ```
 
-Since exposure can be computed for each time point, the `exposure()` function will return a matrix of size $n \times \text{}$ the number of time points in the data; in the previous example, we had a glimpse of the exposure for the first ten individuals at time point five.
+Since exposure can be computed for each time point, the `exposure()` function will return a matrix of size $n \times \text{}$ the number of time points in the data; in the previous example, we had a glimpse of the exposure for the first six individuals at time point five.
 
 The function also prints two other messages. The first, a warning about the `value` parameter beign swithced to `TRUE`, indicates that, since we are using the structural equivalence alternative graph, instead of treating the network as unweighted (0/1-valued ties), the function will compute exposures using weights. The second is a more technical internal message that is describing a change in the `Matrix` R package: users should not worry about this particular message.[^dgcmatrix]
 
@@ -229,7 +229,7 @@ diffreg(kfam_diffnet ~ exposure) |>
  summary()
 ```
 
-The function is a wrapper of the `glm()` function in R that allows estimating Generalized Linear Models. In our case, `diffreg()` estimates a logistic regression model that predicts adoption as a function of network exposure. Furthermore, as it can be seen in the output, the function automatically truncates the data up to the adoption time (like a survival analysis). Importantly, the function throws a warning message indicating that the `per` variable has not been included in the model, which can lead to bias estimates.
+The function is a wrapper of the `glm()` function in R that allows estimating Generalized Linear Models. In our case, `diffreg()` estimates a logistic regression model that predicts adoption as a function of network exposure. Furthermore, as it can be seen in the output, the function automatically truncates the data up to the adoption time (like a survival analysis). Importantly, the function throws a warning message indicating that the period variable, `per`, has not been included in the model, which can lead to bias estimates.
 
 From the output, we can see that the `exposure` term is positively associated with adoption (estimate of 1.012 and a p-value smaller than 0.01), nonetheless, the above example fits an invalid model. To address this issue, we need to make it a *lagged regression model*. In other words, to avoid violating the independent and identically distributed [iid] assumption that regular regression models have, we need to lag the exposure variable. The following code chunk does so adding more control to the `exposure()` term in the model, and more over, leverages the formula syntax to include more features from the Korean family dataset:
 
@@ -313,13 +313,13 @@ Currently, `rdiffnet()` supports thresholds specified as a fixed value for all n
 The `rdiffnet()` function also supports the use of a pre-defined graph as input. The following code shows how to simulate a diffusion process using a Watts-Strogatz graph:
 
 ```{r}
-#| label: simulating-adoption-process-3
+#| label: simulating-adoption-process-2
 # Creating a graph based on watts-strogatz model
 set.seed(121)
 graph <- rgraph_ws(200, 10, p=.3) 
 
 # Run the simulation
-diffnet_3 <- rdiffnet(
+diffnet_2 <- rdiffnet(
   t              = 10,
   seed.graph     = graph,
   seed.p.adopt   = 0.1,
@@ -332,18 +332,18 @@ Since we are passing an actual network to the `seed.graph` argument, the `n` arg
 
 ## Multiadoption
 
-Starting with version 1.23.0, **netdiffuseR** supports simulating multi- and dis-adoption diffusion processes. To study a multi-adoption process, you can pass a `list` as the `seed.p.adopt` parameter. Here is a simple example using the Koren Family Planning network:
+Starting with version 1.23.0, **netdiffuseR** supports simulating multi- and dis-adoption diffusion processes. To study a multi-adoption process, you can pass a `list` as the `seed.p.adopt` parameter. Here is a simple example:
 
 ```{r}
-#| label: simulation-multiadoption-process-4
+#| label: simulation-multiadoption-process-3
 set.seed(1231)
 
-diffnet_4 <- rdiffnet(
+diffnet_3 <- rdiffnet(
  200, 10,
  seed.p.adopt = list(0.1, 0.15)
  )
 
-diffnet_4
+diffnet_3
 ```
 
 Inspecting the output from the print method of the `diffnet` object, we can see that the object contains two behaviors: The  "Num of behaviors" entry now shows `2`, the "Behavior" entry also shows two behaviors, `"Random contagion \_1, Random contagion\_2"`, and finally, the "Prevalence" entry also shows two numbers: `0.29, 0.97`. Although we are simulating two behaviors, `rdiffnet` will simulate as many as values are in the `seed.p.adopt` list.
@@ -355,8 +355,8 @@ In the current implementation of `rdiffnet()`, the multi-adoption module simulat
 `rdiffnet()`'s defaults will replicate the simulation parameters across behaviors. Nonetheless, we can use lists to specify different parameters for each behavior. For example, the following code simulates two behaviors with different initial adopters, threshold distributions, seed nodes, and labels for the behaviors:
 
 ```{r}
-#| label: simulation-multiadoption-process-6
-diffnet_6 <- rdiffnet(
+#| label: simulation-multiadoption-process-4
+diffnet_4 <- rdiffnet(
   200, 10,
   seed.p.adopt = list(0.1, 0.15),
   threshold.dist = list(
@@ -367,32 +367,32 @@ diffnet_6 <- rdiffnet(
   behavior   = list("tobacco", "alcohol")
 )
 
-diffnet_6
+diffnet_4
 ```
 
 In this particular example, we ran `rdiffnet()` with most of the parameters being in a `list`. The reader is invited to look at other types of possible inputs in the `rdiffnet()` documentation.
 
-As we did in the previous section, we can give a specific network as input. Besides passing fixed networks as we did with the small-world example, the `rdiffnet` function also supports passing diffnet objects as input. When doing so, the function will use the graph of the diffnet object as the seed graph and will take the time argument as the number of timepoints included in the graph:
+As we did in the previous section, we can give a specific network as input. Besides passing fixed networks as we did with the small-world example, the `rdiffnet()` function also supports passing `diffnet` objects as input. When doing so, the function will use the graph of the `diffnet` object as the seed graph and will take the time argument as the number of timepoints included in the graph. Here is a simple example using the Koren Family Planning network:
 
 ```{r}
-#| label: simulation-multiadoption-process-7
-diffnet <- rdiffnet(
+#| label: simulation-multiadoption-process-5
+diffnet_5 <- rdiffnet(
   seed.graph     = kfam_diffnet,
   seed.p.adopt   = list(0.1, 0.15),
   threshold.dist = runif(nvertices(kfam_diffnet), .3,.5)
   )
 
-diffnet
+diffnet_5
 ```
 
 To visualize the diffusion process when there's more than one behavior, we can use the `split_behaviors()` function to split the diffnet object into a list of diffnet objects, one for each behavior. Then, we can use the `plot_adopters()` function to visualize the diffusion process for each behavior; moreover, using the `par()` function in R, we can arrange both plots in a single window:
 
 ```{r}
-#| label: simulation-multiadoption-process-7-plot
-diffnets <- split_behaviors(diffnet)
+#| label: simulation-multiadoption-process-5-plot
+diffnets_5 <- split_behaviors(diffnet_5)
 op <- par(mfrow=c(1,2), cex = .8)
-plot_adopters(diffnets[[1]], main = "Behavior 1")
-plot_adopters(diffnets[[2]], main = "Behavior 2")
+plot_adopters(diffnets_5[[1]], main = "Behavior 1")
+plot_adopters(diffnets_5[[2]], main = "Behavior 2")
 par(op)
 ```
 
@@ -400,13 +400,13 @@ Notice the `op` object that stores the original graphical parameters. We use it 
 
 ## Disadoption
 
-The disadoption feature included in **netdiffuseR** version 1.24.0 opened a new way of studying network diffusion processes. Considering the disadoption of an innovation or behavior is essential for studying significant aspects of competition between products or beliefs [@lehmann_disadoption_2017]. The `rdiffnet()` function includes the `disadopt` parameter to add a disadoption function, facilitating such analyses and enabling the testing of some theoretical models for disadoption [@alipour_enough_2024].
+The disadoption feature included in **netdiffuseR** version 1.23.0 opened a new way of studying network diffusion processes. Considering the disadoption of an innovation or behavior is essential for studying significant aspects of competition between products or beliefs [@lehmann_disadoption_2017]. The `rdiffnet()` function includes the `disadopt` parameter to add a disadoption function, facilitating such analyses and enabling the testing of some theoretical models for disadoption [@alipour_enough_2024].
 
 1. It must be a function that receives three arguments: `expo`, `cumadopt`, and `time`.
 
-2. It must return a list with as many elements as behaviors there are: It should list which nodes are dropping behaviors. For instance, if only node `1` (one) is dropping behavior one of three, it should return `list(1, integer(), integer())`.
+2. It must return a list with as many vectors as behaviors there are: It should list which nodes are dropping behaviors. For instance, if only node `5` (five) is dropping behavior one of three, it should return `list(c(5), integer(), integer())`.
 
-3. If there are no nodes to disadopt or adopt, the function must return an empty vector (`integer()`).
+3. If there are no nodes to disadopt or adopt none of $n$ behaviors, the function must return a list with empty vectors: `replicate(n, integer())`.
 
 A template for a disadoption function, which currently returns no disadoption, follows:
 
@@ -468,14 +468,14 @@ To simulate a diffusion process with disadoption, we can use the `rdiffnet()` fu
 
 ```{r}
 #| label: disadoption-example-1
-diffnet_7  <- rdiffnet(
+diffnet_6  <- rdiffnet(
   seed.graph   = graph,
   t            = 10,
   disadopt     = random_dis,
   seed.p.adopt = 0.1
   )
 
-diffnet_7
+diffnet_6
 ```
 
 Using the `disadopt` function, we can build more complex models featuring competing behaviors. For instance, we can build a disadoption function that restricts nodes from adopting more than one behavior at a time, particularly, we can implement the following rule for adopters of behavior 1:
@@ -504,23 +504,23 @@ one_only <- function(expo, cumadopt, time) {
 
 Of the code above, we can highlight the following:
 
-1. We are identifying individuals adopting more than one behavior at time `t` using the code `apply(cumadopt[, time,], 1, sum) > 1`. In a two behavior model, this will return a vector with values 0 (no adoption), 1 (only one behavior adopted), or 2 (both behaviors adopted).
+1. We are identifying the number of behaviors adopted by each individual at time `t` using the code `apply(cumadopt[, time,], 1, sum)`. In a two behavior model, this will return a vector with values 0 (no adoption), 1 (only one behavior adopted), or 2 (both behaviors adopted).
 
 2. The `which()` function is used to identify the nodes adopting both behaviors (after calling `apply()`).
 
-3. If there are no double adopters, the function returns an empty list.
+3. If there are no double adopters, the function returns a list with empty vectors.
 
 Let's simulate a diffusion process with the disadoption function `one_only`:
 
 ```{r}
 #| label: disadoption-example-2
 set.seed(331)
-diffnet_8 <- rdiffnet(
+diffnet_7 <- rdiffnet(
   200, 10,
   disadopt = one_only,
   seed.p.adopt = list(0.1, 0.1)
 )
-diffnet_8
+diffnet_7
 ```
 
 To finalize, we can demonstrate that nodes adopted a single behavior by taking the cumulative adoption matrix at the last time point and checking if there are any nodes adopting both behaviors. We will use the `toa_mat()` function which extract the cumulative adoption matrix from the model:
@@ -528,7 +528,7 @@ To finalize, we can demonstrate that nodes adopted a single behavior by taking t
 ```{r}
 #| label: checking-if-if-worked
 #
-toas <- toa_mat(diffnet_8)
+toas <- toa_mat(diffnet_7)
 
 # Putting the two behaviors together
 adopted <-  cbind(
@@ -547,10 +547,10 @@ As expected, there's no entry in the table in which both behaviors were adopted 
 
 # Conclusion
 
-This paper has provided an introduction to the NetdiffuseR R package designed to facilitate estimating contagion and diffusion processes on networks. The main goal was to provide example code and tutorial so others may use the package to explore diffusion network models either with the existing classic datasets that come with the package or using their own data. The main tutorial sections included sample code for estimating network exposure, the workhorse variable in network research. Simulation features of netdiffuseR were illustrated which provide tools for theoretical testing of diffusion processes. We also provided examples of extensions to exposure that provide a wide array of different weighting techniques, such as structural equivalence, homophilic ties, and so on.
+This paper has provided an introduction to the netdiffuseR R package designed to facilitate estimating contagion and diffusion processes on networks. The main goal was to provide example code and tutorial so others may use the package to explore diffusion network models either with the existing classic datasets that come with the package or using their own data. The main tutorial sections included sample code for estimating network exposure, the workhorse variable in network research. Simulation features of netdiffuseR were illustrated which provide tools for theoretical testing of diffusion processes. We also provided examples of extensions to exposure that provide a wide array of different weighting techniques, such as structural equivalence, homophilic ties, and so on.
 
 We also provide illustrative examples of modeling multi-diffusion processes when there is more than one idea or behavior spreading through the network. For example, the Korean family planning contains data on multiple family planning choices individuals made over time. We also have example code for estimating models that include disadoption as when someone adopts a behavior and then subsequently discontinues it and then may resume at a later date, and so on. At present there are few datasets, if any, that meet these scenarios, but it is hoped that as scholars are exposed to this work they uncover such datasets.
 
-We hope that by providing these illustrative examples, others will be able to use NetdiffuseR in their work. Diffusion processes are ubiquitous in science and everyday life. The diffusion paradigm was first established by Ryan and Gross in 1943 (Valente & Rogers, 1995) but it continues to grow and evolve, and our hope is that this publication will further encourage both growth and evolution.
+We hope that by providing these illustrative examples, others will be able to use netdiffuseR in their work. Diffusion processes are ubiquitous in science and everyday life. The diffusion paradigm was first established by Ryan and Gross in 1943 [@valente_origins_1995] but it continues to grow and evolve, and our hope is that this publication will further encourage both growth and evolution.
 
 # References
