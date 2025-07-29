@@ -140,27 +140,59 @@ Of the observed outcomes, it is noteworthy that (a) the diffusion process is app
 
 ## Computing exposures
 
-Exposures are a fundamental part of estimating diffusion network effects. Consequently, netdiffuseR provides a wide range of possibilities when it comes to calculating exposures. Using the `exposure()` function, users can calculate cohesion (direct ties) and structural equivalence exposures [@burt_1987], attribute weighted exposure, tie-weighted exposure, count exposure (instead of proportion), and many more. The following code block shows how to calculate three different types of exposure:
+Exposures are a fundamental part of estimating diffusion network effects. Consequently, netdiffuseR provides a wide range of possibilities when it comes to calculating exposures. Using the `exposure()` function, users can calculate cohesion (direct ties) and structural equivalence exposures [@burt_1987], attribute weighted exposure, tie-weighted exposure, count exposure (instead of proportion), and many more. The following code blocks show how to calculate three different types of exposure:
+
+\noindent
+**Cohesive exposure.** Corresponds to the simplest type of exposure. With it, we measure the proportion of neighbors who have adopted at each time point. Thus, the `exposure()` function will return a matrix of size $n \times \text{}$ the number of time points in the data:
 
 ```{r}
-#| label: computing-exposures
+#| label: computing-exposures-cohesive
 exp_cohesive <- exposure(kfam_diffnet)
+
+# Showing the exposure for the first five agents
+# and first six time points
+exp_cohesive[1:5, 1:6]
+```
+
+\noindent
+**Structural equivalence.** In a nutshell, this type of exposure is often used when influence occurrs not necessarily via direct connections, but rather through similarity of the adopters. In other words, an individual may be more likely to adopt a behavior if others with similar positions to them in the network adopt.
+
+```{r}
+#| label: computing-exposures-se
 exp_se <- exposure(kfam_diffnet, alt.graph = "se")
+
+# Showing the exposure for the first five agents
+# and first six time points
+exp_se[1:5, 1:6]
+```
+
+The function prints a couple of messages: The first, a warning about the `value` parameter beign swithced to `TRUE`, indicates that, since we are using the structural equivalence alternative graph, instead of treating the network as unweighted (0/1-valued ties), the function will compute exposures using weights. The second is a more technical internal message that is describing a change in the `Matrix` R package: users should not worry about this particular message.[^dgcmatrix]
+
+[^dgcmatrix]: To the date of this writing, developers of **netdiffuseR** just acknowledged the issue and are working on fix that will be reflected in the next version of the package.
+
+\noindent
+**Attribute weighted.** Finally, this type of exposure can be used when a characteristic of adopters may make them more influential in the social contagion process. For example, people may be more influenced by older individuals than younger:
+
+```{r}
+#| label: computing-exposures-attr
 exp_age <- exposure(kfam_diffnet, attrs = "age")
 
+# Showing the exposure for the first five agents
+# and first six time points
+exp_age[1:5, 1:6]
+```
+
+We can look at the three different exposures we just calculated by combining them into a single matrix. The following code chunk takes the fifth column (exposure at the fifth time point) and shows the exposures for the first ten individuals in the network:
+
+```{r}
+#| label: visualizing-exposures
 # Visualizing exposure at time 5
 cbind(
   "Cohesive"       = exp_cohesive[, 5],
   "SE"             = exp_se[, 5],
   "Attr. weighted" = exp_age[, 5]
-) |> head()
+) |> head(n = 10)
 ```
-
-Since exposure can be computed for each time point, the `exposure()` function will return a matrix of size $n \times \text{}$ the number of time points in the data; in the previous example, we had a glimpse of the exposure for the first ten individuals at time point five.
-
-The function also prints two other messages. The first, a warning about the `value` parameter beign swithced to `TRUE`, indicates that, since we are using the structural equivalence alternative graph, instead of treating the network as unweighted (0/1-valued ties), the function will compute exposures using weights. The second is a more technical internal message that is describing a change in the `Matrix` R package: users should not worry about this particular message.[^dgcmatrix]
-
-[^dgcmatrix]: To the date of this writing, developers of **netdiffuseR** just acknowledged the issue and are working on fix that will be reflected in the next version of the package.
 
 In addition to the exposure function, netdiffuseR comes with other functions that can be used in combination with its core functions. For instance, we can use the `vertex_covariate_compare()` function to calculate age homophilic exposure. Mathematically, we define it as it follows:
 
