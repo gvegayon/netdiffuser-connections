@@ -7,16 +7,17 @@ bibliographystyle: apa
 link-citations: true
 author: 
   - name: George G. Vega Yon
+    corresponding: true
+    email: george.vegayon@utah.edu
     affiliation:
       - name: University of Utah
-    email: george.vegayon@utah.edu
   - name: Aníbal L. Olivera M.
     affiliation:
       name: Universidad del Desarrollo
   - name: Thomas W. Valente
     affiliation:
       name: University of Southern California
-# include-in-header: header.tex
+embed-resources: true
 ---
 
 ```{r}
@@ -25,10 +26,6 @@ author:
 knitr::opts_chunk$set(warning = TRUE, message = TRUE)
 options(digits=4)
 ```
-
-# Acknowledgements
-
-This work was supported by the National Institute of Drug Abuse, the National Institutes of Health (NIH), grant number R01-DA051843.
 
 # Abstract
 
@@ -56,11 +53,13 @@ Some people innovate with none or few adopters in their network adopting whereas
 
 # The netdiffuseR package
 
-The netdiffuseR R package [@netdiffuser_1; @netdiffuser_2] was first released to CRAN on February 18, 2016. The package contains a collection of algorithms and methods first envisioned by Dr. Valente and released in his book [@valente_book_1999] as GAUSS code. Since its release in 2016, the package has been downloaded over 45 thousand times and has about 400 downloads a month, with an active community growing.
+The netdiffuseR R package [@valente_yon_2020; @netdiffuser_2] was first released to CRAN on February 18, 2016. The package contains a collection of algorithms and methods first envisioned by Dr. Valente and released in his book [@valenteNetworkModelsDiffusion1995] as GAUSS code. Since its release in 2016, the package has been downloaded over 45 thousand times and has about 400 downloads a month, with an active community growing.
 
 In a nutshell, netdiffuseR provides methods for simulating, processing, analyzing, and visualizing diffusion networks. Among its key functions are the `survey_to_diffnet()` function, `rdiffnet()` function, and the `exposure()` function. The `survey_to_diffnet()` function provides an interface to read in tabular data (in R `data.frame` format) corresponding to survey data containing network nominations and time of adoption [TOA]. The function makes it easy to process survey data, pass multiple checks, and build the adoption and cumulative adoption matrices. The `rdiffnet()` function allows simulating diffusion networks using the threshold model and, since version 1.23.0, simulating multi-diffusion and disadoption. Users can simulate diffusion processes on pre-defined networks or random graphs in a computationally efficient way. Finally, the `exposure()` function–the workhorse of the R package–provides a flexible framework for calculating various types of exposure measures as indicated above. In the following section of the paper, we will provide a demonstration of these functions.
 
 # A tutorial on netdiffuseR
+
+This tutorial has been developed using **R** version 4.5.1 [@R] and the program **quarto** version 1.6.42 [@Allaire_Quarto_2025]. Readers can find the quarto document as well as all required material for reproducing the paper in <https://github.com/gvegayon/netdiffuser-connections>.
 
 ## Analyzing existing data
 
@@ -114,7 +113,7 @@ kfam_diffnet <- survey_to_diffnet(
 
 The key things to notice from this code are: (1) We have to specify the “id” of each individual in the dataset via the `idvar` argument; (2) using the `netvars` argument, you can list all the network nomination columns in your data; (3) the `toavar` argument is the name of the variable that contains the time of adoption (year in this case); finally (4) since we have multiple communities in this dataset, we use the `groupvar` argument to tell the function there cannot be ties between villages, only within. The function has many more options and readers can learn about them in the manual `?survey_to_diffnet`.
 
-Another thing to note are the warnings. The R programming language (like most do) distinguishes between decimal ("`numeric`") and integer numbers. In this case, the function is throwing a warning about columns beign coerced from numeric into integer types. These are mostly informative, and if the user rather skipping these, they can use the `suppressWarnings()` function in R. We will see more warnings as we execute R code and will pause at some points to discuss further about what these mean to the user.
+Another thing to note are the warnings. The R programming language (like most do) distinguishes between decimal ("`numeric`") and integer numbers. In this case, the function is throwing a warning about columns beign coerced from numeric into integer types. These are mostly informative, and the user can skipping these with the `suppressWarnings()` function in R. We will see more warnings as we execute R code and will pause at some points to discuss what these mean to the user.
 
 The `diffnet` object we just created has various inspection methods. The print method gives a glimpse of the data, indicating the number of time points, nodes, type of network, and adoption prevalence, among other things. The `summary` method provides information about the adoption dynamics; it shows the number and proportion of adopters at each time point, network density, and Moran’s I [@moran_1950] indicating the level of spatial correlation. Finally, the `plot_diffnet()` function visualizes the diffusion process which colors nodes according to their adoption status, non-adopter, new adopter, and continuing adopter. The following code-chunk shows how to call these functions:
 
@@ -166,7 +165,7 @@ exp_se <- exposure(kfam_diffnet, alt.graph = "se")
 exp_se[1:5, 1:6]
 ```
 
-The function prints a couple of messages: The first, a warning about the `value` parameter beign swithced to `TRUE`, indicates that, since we are using the structural equivalence alternative graph, instead of treating the network as unweighted (0/1-valued ties), the function will compute exposures using weights. The second is a more technical internal message that is describing a change in the `Matrix` R package: users should not worry about this particular message.[^dgcmatrix]
+The function prints a couple of messages: The first, a warning about the `value` parameter being swithced to `TRUE`, indicates that, since we are using the structural equivalence alternative graph, instead of treating the network as unweighted (0/1-valued ties), the function will compute exposures using weights. The second is a more technical internal message that is describing a change in the `Matrix` R package: users should not worry about this particular message.[^dgcmatrix]
 
 [^dgcmatrix]: To the date of this writing, developers of **netdiffuseR** just acknowledged the issue and are working on fix that will be reflected in the next version of the package.
 
@@ -188,7 +187,7 @@ We can look at the three different exposures we just calculated by combining the
 #| label: visualizing-exposures
 # Visualizing exposure at time 5
 cbind(
-  "Cohesive"       = exp_cohesive[, 5],
+  "Cohesion"       = exp_cohesive[, 5],
   "SE"             = exp_se[, 5],
   "Attr. weighted" = exp_age[, 5]
 ) |> head(n = 10)
@@ -235,13 +234,13 @@ exp_age_homo <- exposure(
 )
 ```
 
-The warnings in `exposure()` indicate that (a) the passed graph is going to be avaluated as a valued (weighted) network and (b) the same graph is going to be used to compute exposure in all time points (so it is static). The next code chunk gives a glimpse of the different exposure values we have just calculated:
+The warnings in `exposure()` indicate that (a) the passed graph is going to be evaluated as a valued (weighted) network and (b) the same graph is going to be used to compute exposure in all time points (so it is static). The next code chunk gives a glimpse of the different exposure values we have just calculated:
 
 ```{r}
 #| label: showing-all-exposures
 # Visualizing exposure at time 5
 cbind(
-  "Cohesive"       = exp_cohesive[, 5],
+  "Cohesion"       = exp_cohesive[, 5],
   "SE"             = exp_se[, 5],
   "Attr. weighted" = exp_age[, 5],
   "Homophilic"     = exp_age_homo[, 5]
@@ -584,5 +583,9 @@ This paper has provided an introduction to the netdiffuseR R package designed to
 We also provide illustrative examples of modeling multi-diffusion processes when there is more than one idea or behavior spreading through the network. For example, the Korean family planning contains data on multiple family planning choices individuals made over time. We also have example code for estimating models that include disadoption as when someone adopts a behavior and then subsequently discontinues it and then may resume at a later date, and so on. At present there are few datasets, if any, that meet these scenarios, but it is hoped that as scholars are exposed to this work they uncover such datasets.
 
 We hope that by providing these illustrative examples, others will be able to use netdiffuseR in their work. Diffusion processes are ubiquitous in science and everyday life. The diffusion paradigm was first established by Ryan and Gross in 1943 [@valente_origins_1995] but it continues to grow and evolve, and our hope is that this publication will further encourage both growth and evolution.
+
+# Acknowledgements
+
+This work was supported by the National Institute of Drug Abuse, the National Institutes of Health (NIH), grant number R01-DA051843. We would also like to thank an anonymous reviewer for their comments and suggestions that improved this paper.
 
 # References
