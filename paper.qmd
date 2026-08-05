@@ -124,6 +124,21 @@ The key points are: (1) `idvar` identifies each individual in the dataset; (2) `
 
 R distinguishes between numeric values stored as decimals and values stored as integers. The identifiers, village codes, and adoption years in this example are whole numbers, so we converted them explicitly with `as.integer()` before calling `survey_to_diffnet()`. This prevents the coercion warnings that would otherwise appear without changing the values.
 
+The terminal time category in the Korean Family Planning data requires special treatment. Period 11 does not represent a regular observation wave: instead, it assigns an adoption time to every respondent who had not adopted in an earlier period. If these assignments were treated as observed adoptions, cumulative prevalence would be forced to 100%, which could bias analyses of the diffusion process. In the two villages used here, 51 respondents receive this terminal code. We treat them as right-censored by replacing their time of adoption with `NA`, and then use the `diffnet` subsetting method to remove period 11. The resulting object contains the ten genuinely observed periods and a final observed prevalence below 100%:
+
+```{r}
+#| label: remove-terminal-period
+# Identify respondents assigned to the terminal time category.
+terminal_period <- max(kfam_diffnet$meta$pers)
+terminal_cases <- diffnet.toa(kfam_diffnet) == terminal_period
+
+# Treat their adoption times as right-censored.
+diffnet.toa(kfam_diffnet)[terminal_cases] <- NA_integer_
+
+# Retain only the genuinely observed network periods.
+kfam_diffnet <- kfam_diffnet[, , kfam_diffnet$meta$pers < terminal_period]
+```
+
 The `diffnet` object we just created has several inspection methods. `print()` gives a glimpse of the data, including the number of time points and nodes, network type, and adoption prevalence. `summary()` describes the adoption dynamics, including the number and proportion of adopters at each time point, network density, and Moran’s I [@moran_1950] as a measure of spatial autocorrelation. Finally, `plot_diffnet()` visualizes the diffusion process by coloring nodes as non-adopters, new adopters, or continuing adopters. The following code chunk demonstrates the first two functions:
 
 ```{r}
@@ -274,7 +289,7 @@ summary(model_baseline)
 
 The `diffreg()` function is a wrapper around R's `glm()` function. It expands the data into person-period observations and retains each person only while they are at risk of adopting, analogous to a discrete-time event-history analysis. Adoption at time $t$ is modeled using network exposure at time $t-1$. Because the predictor is lagged, one person's adoption at time $t$ is not used contemporaneously to predict another person's adoption at the same time. Under the usual conditional-independence assumptions of the specified logistic regression, the model can therefore be estimated using standard GLM inference; the fact that exposure is computed from a network does not by itself invalidate the regression. As in other regression settings, researchers may add fixed effects, random effects, or other adjustments when their substantive design requires them.
 
-The baseline exposure coefficient is 1.012 on the log-odds scale ($p < 0.001$). Thus, a 0.10 increase in the proportion of adopting contacts is associated with a multiplicative change of $\exp(0.10 \times 1.012) = 1.11$ in the odds of adoption, or approximately 11% higher odds. This result is only illustrative because the model omits the baseline adoption hazard. The displayed warning explains that adoption becomes more common over time, so omitting the period variable `per` can attribute a common time trend to exposure. The next specification includes period indicators and individual characteristics and explicitly shows the one-period exposure lag:
+The baseline exposure coefficient is 0.606 on the log-odds scale ($p = 0.107$). Thus, a 0.10 increase in the proportion of adopting contacts is associated with a multiplicative change of $\exp(0.10 \times 0.606) = 1.06$ in the odds of adoption, or approximately 6% higher odds. The estimate is not statistically distinguishable from no association at conventional levels. This result is only illustrative because the model omits the baseline adoption hazard. The displayed warning explains that adoption can change over time, so omitting the period variable `per` can attribute a common time trend to exposure. The next specification includes period indicators and individual characteristics and explicitly shows the one-period exposure lag:
 
 ```{r}
 #| label: diffreg-2
@@ -304,7 +319,7 @@ Individual period coefficients compare each period with the reference period and
 drop1(model_adjusted, test = "Chisq")["factor(per)", ]
 ```
 
-The joint test is statistically significant ($p < 0.001$), confirming that the baseline adoption hazard changes over time. The unusually large period-11 coefficient and standard error also indicate a sparse final-period cell, so that individual coefficient should not be interpreted substantively.
+After removing the artificial terminal period, the joint likelihood-ratio test does not reject a constant baseline adoption hazard over the observed periods ($p = 0.72$). This differs from the analysis that incorrectly treated the forced terminal adoptions as observed events: those entries generated a very large period-11 coefficient and made the period indicators appear jointly significant. The revised result illustrates why censoring the terminal cases and removing period 11 are important.
 
 More details about what happens when calling the `diffreg()` function can be found in the library's manual.
 
