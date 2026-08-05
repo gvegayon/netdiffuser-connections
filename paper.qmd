@@ -5,18 +5,6 @@ keep-tex: true
 bibliography: bibliography.bib
 bibliographystyle: apa
 link-citations: true
-author: 
-  - name: George G. Vega Yon
-    corresponding: true
-    email: george.vegayon@utah.edu
-    affiliation:
-      - name: University of Utah
-  - name: Aníbal L. Olivera M.
-    affiliation:
-      name: Universidad del Desarrollo
-  - name: Thomas W. Valente
-    affiliation:
-      name: University of Southern California
 embed-resources: true
 ---
 
