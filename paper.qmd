@@ -47,7 +47,7 @@ In a nutshell, netdiffuseR provides methods for simulating, processing, analyzin
 
 # A tutorial on netdiffuseR
 
-This tutorial was developed using **R** version 4.5.1 [@R], **Quarto** version 1.6.42 [@Allaire_Quarto_2025], and **netdiffuseR** version 1.25.0. The multi-adoption and disadoption features demonstrated below were introduced in netdiffuseR version 1.23.0 and are available in the current CRAN release. Readers can find the Quarto document and all materials required to reproduce the paper at <https://github.com/gvegayon/netdiffuser-connections>.
+This tutorial was developed using **R** version 4.5.1 [@R], **Quarto** version 1.6.42 [@Allaire_Quarto_2025], and **netdiffuseR** version 1.25.0. The multi-adoption and disadoption features demonstrated below were introduced in netdiffuseR version 1.23.0 and are available in the current CRAN release. Readers can find the Quarto document and all materials required to reproduce the paper at TBD.
 
 ## Analyzing existing data
 
@@ -170,9 +170,7 @@ exp_cohesive[1:5, 1:6]
 
 ```{r}
 #| label: computing-exposures-se
-exp_se <- suppressMessages(suppressWarnings(
-  exposure(kfam_diffnet, alt.graph = "se", valued = TRUE)
-))
+exp_se <- exposure(kfam_diffnet, alt.graph = "se", valued = TRUE)
 
 # Showing the exposure for the first five agents
 # and first six time points
@@ -266,7 +264,7 @@ In sum, the `exposure()` function provides considerable flexibility for calculat
 
 ## Fitting a lagged exposure model
 
-A natural step after computing exposures is estimating lagged exposure models. A common approach is a discrete-time logistic regression that predicts adoption as a function of node characteristics and lagged exposure. The `diffreg()` function facilitates this analysis. When `exposure` is included as a bare term, `diffreg()` automatically uses a one-period lag. The following code fits a baseline model using that default:
+A natural step after computing exposures is estimating lagged exposure models. A common approach is a discrete-time logistic regression that predicts adoption as a function of node characteristics and lagged exposure. The `diffreg()` function facilitates this analysis. When `exposure` is included on its own in the model formula, `diffreg()` automatically uses a one-period lag. To illustrate an important modeling safeguard, the deliberately simplified baseline model below omits period indicators. It therefore displays a warning about `per`, which we explain immediately afterward. The following model uses the default one-period exposure lag:
 
 ```{r}
 #| label: diffreg
@@ -275,7 +273,7 @@ model_baseline <- diffreg(kfam_diffnet ~ exposure)
 summary(model_baseline)
 ```
 
-The `diffreg()` function is a wrapper around R's `glm()` function. It expands the data into person-period observations and retains each person only while they are at risk of adopting, analogous to a discrete-time event-history analysis. Adoption at time $t$ is modeled using network exposure at time $t-1$. Because the predictor is lagged, one person's adoption at time $t$ is not used contemporaneously to predict another person's adoption at the same time. Under the usual conditional-independence assumptions of the specified logistic regression, the model can therefore be estimated using standard GLM inference; the fact that exposure is computed from a network does not by itself invalidate the regression. As in other regression settings, researchers may add fixed effects, random effects, or other adjustments when their substantive design requires them.
+The `diffreg()` function uses R's `glm()` function after expanding the data into person-period observations and retaining each person only while they are at risk of adopting, analogous to a discrete-time event-history analysis. Adoption at time $t$ is modeled using network exposure at time $t-1$. Because the predictor is lagged, one person's adoption at time $t$ is not used contemporaneously to predict another person's adoption at the same time. Under the usual conditional-independence assumptions of the specified logistic regression, the model can therefore be estimated using standard GLM inference; the fact that exposure is computed from a network does not by itself invalidate the regression. As in other regression settings, researchers may add fixed effects, random effects, or other adjustments when their substantive design requires them.
 
 The baseline exposure coefficient is 0.606 on the log-odds scale ($p = 0.107$). Thus, a 0.10 increase in the proportion of adopting contacts is associated with a multiplicative change of $\exp(0.10 \times 0.606) = 1.06$ in the odds of adoption, or approximately 6% higher odds. The estimate is not statistically distinguishable from no association at conventional levels. This result is only illustrative because the model omits the baseline adoption hazard. The displayed warning explains that adoption can change over time, so omitting the period variable `per` can attribute a common time trend to exposure. The next specification includes period indicators and individual characteristics and explicitly shows the one-period exposure lag:
 
@@ -321,19 +319,25 @@ Diffusion processes in networks are simulated using `rdiffnet()`, which supports
 
 3. a threshold value is assigned to each node,
 
-4. if required, a set of $t$ networks is created, and
+4. if requested, a sequence of $t$ networks is created, and
 
 5. new adopters are selected at times $t > 1$ based on each node's exposure at time $t-1$. If that exposure exceeds the node's threshold, the node adopts; otherwise, it remains a non-adopter.
 
-The function has only two mandatory arguments: the number of nodes (`n`) and the number of time steps (`t`). By default, it generates a scale-free graph with random rewiring at each time step, sets the proportion of initial adopters to 0.05, and draws a threshold for each node from a uniform distribution. This example shows the default settings for a diffusion process with 200 nodes and 10 time steps:
+The function requires only two inputs: the number of nodes (`n`) and the number of time steps (`t`). By default, it generates a scale-free graph with random rewiring at each time step, sets the proportion of initial adopters to 0.05, and draws a threshold for each node from a uniform distribution. This example shows the default settings for a diffusion process with 200 nodes and 10 time steps:
 
 ```{r}
 #| label: simulating-adoption-process-1
-#| eval: false
+# Make the simulated network reproducible.
+set.seed(331)
+
+# Give the dimensions names so they can be reused below.
+n_nodes <- 200
+n_periods <- 10
+
 diffnet_1 <- rdiffnet(
-  # Mandatory arguments
-  n = 200,
-  t = 10,
+  # Required inputs
+  n = n_nodes,
+  t = n_periods,
   # Optional arguments
   seed.nodes     = "random",
   seed.p.adopt   = 0.05,
@@ -341,7 +345,7 @@ diffnet_1 <- rdiffnet(
   rgraph.args    = list(),
   rewire         = TRUE,
   rewire.args    = list(),
-  threshold.dist = runif(n),
+  threshold.dist = runif(n_nodes),
   exposure.args  = list(),
   name           = "A diffusion network",
   behavior       = "Random contagion",
@@ -405,7 +409,7 @@ diffnet_3 <- rdiffnet(
 diffnet_3
 ```
 
-The output identifies the calculation as a multi-diffusion simulation and reports two behaviors, along with a final prevalence for each. The warning about coercing simulated times of adoption to integers is expected because the simulation uses discrete time; no information is lost. We display and explain these diagnostics here. In subsequent simulation chunks, we suppress the same repeated message and warning. `rdiffnet()` simulates as many behaviors as there are entries in the `seed.p.adopt` list.
+The output identifies the calculation as a multi-diffusion simulation and reports two behaviors, along with a final prevalence for each. The simulation uses discrete time, so some package versions emit a benign warning while storing times of adoption as integers. We suppress that implementation-level diagnostic here so that readers can run this introductory multi-adoption example cleanly. `rdiffnet()` simulates as many behaviors as there are entries in the `seed.p.adopt` list. The user may also notice a warning related to the coercion of `toa` to integer values; this warning is benign and can be ignored using the `suppressWarnings()` function. The issue has been submitted to the `netdiffuseR` development team and will be fixed in a future release.
 
 ::: {.callout-tip}
 In the current implementation of `rdiffnet()`, the multi-adoption module simulates behaviors independently. That is, the code above would be equivalent to simulating the same behavior twice. More complicated models in which behaviors are interdependent are supported via the dis-adoption parameter.
@@ -416,7 +420,7 @@ In the current implementation of `rdiffnet()`, the multi-adoption module simulat
 ```{r}
 #| label: simulation-multiadoption-process-4
 set.seed(1232)
-diffnet_4 <- suppressMessages(suppressWarnings(rdiffnet(
+diffnet_4 <- suppressWarnings(rdiffnet(
   200, 10,
   seed.p.adopt = list(0.1, 0.15),
   threshold.dist = list(
@@ -425,7 +429,7 @@ diffnet_4 <- suppressMessages(suppressWarnings(rdiffnet(
   ),
   seed.nodes = list("central", "random"),
   behavior   = list("tobacco", "alcohol")
-)))
+))
 
 diffnet_4
 ```
@@ -437,13 +441,13 @@ As in the previous section, we can provide a specific network as input. Besides 
 ```{r}
 #| label: simulation-multiadoption-process-5
 set.seed(1233)
-diffnet_5 <- suppressMessages(suppressWarnings(rdiffnet(
+diffnet_5 <- suppressWarnings(rdiffnet(
   seed.graph     = kfam_diffnet,
   seed.p.adopt   = list(0.1, 0.15),
   seed.nodes     = list("random", "random"),
   threshold.dist = runif(nvertices(kfam_diffnet), .3, .5),
   behavior       = list("Behavior 1", "Behavior 2")
-)))
+))
 
 diffnet_5
 ```
@@ -583,13 +587,13 @@ Let's simulate a diffusion process with the disadoption function `one_only`:
 ```{r}
 #| label: disadoption-example-2
 set.seed(331)
-diffnet_7 <- suppressMessages(suppressWarnings(rdiffnet(
+diffnet_7 <- suppressWarnings(rdiffnet(
   200, 10,
   disadopt     = one_only,
   seed.p.adopt = list(0.1, 0.1),
   seed.nodes   = list("random", "random"),
   behavior     = list("Behavior 1", "Behavior 2")
-)))
+))
 diffnet_7
 ```
 
