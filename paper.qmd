@@ -1,10 +1,24 @@
 ---
 title: "A netdiffuseR Tutorial: Estimating Network Influences on Behavior within the Diffusion Paradigm"
-format: pdf
-keep-tex: true
+format:
+  pdf:
+    keep-tex: true
+  docx: default
 bibliography: bibliography.bib
 bibliographystyle: apa
 link-citations: true
+author:
+  - name: George G. Vega Yon
+    corresponding: true
+    email: george.vegayon@utah.edu
+    affiliation:
+      - name: University of Utah
+  - name: Aníbal L. Olivera M.
+    affiliation:
+      name: Universidad del Desarrollo
+  - name: Thomas W. Valente
+    affiliation:
+      name: University of Southern California
 embed-resources: true
 ---
 
@@ -14,6 +28,10 @@ embed-resources: true
 knitr::opts_chunk$set(warning = TRUE, message = TRUE)
 options(digits=4)
 ```
+
+**George G. Vega Yon**, University of Utah (corresponding author: <george.vegayon@utah.edu>)\
+**Aníbal L. Olivera M.**, Universidad del Desarrollo\
+**Thomas W. Valente**, University of Southern California
 
 # Abstract
 
@@ -31,9 +49,9 @@ The workhorse variable used to measure network influences on adoption is network
 
 $$
 E_{it} = \frac{\sum_{j\neq i}W_{ij}a_{j(t-1)}}{\sum_{j\neq i}W_{ij}}
-$$
+$$ {#eq-exposure}
 
-Here, $W_{ij}$ is a weight matrix indicating ties between individuals, most commonly a binary adjacency matrix such as a friendship network, although it can represent any relation. The adoption vector $a$ indicates which of person $i$'s alters $j$ had adopted at time $t - 1$, and the denominator is the row sum, or number of outgoing ties. $E_{it}$ in Equation 1 measures the proportion of a person's ties at time $t$ who had adopted the behavior by the prior time period. As described in @Valente2024, the exposure calculation can be extended by using a count (removing the denominator) or by weighting ties according to indirect connectivity, structural equivalence, strength (weak versus strong), homophily, Simmelian relations (alter-to-alter), or alter network properties such as centrality. The `exposure()` function enables users to calculate these alternatives through its arguments.
+Here, $W_{ij}$ is a weight matrix indicating ties between individuals, most commonly a binary adjacency matrix such as a friendship network, although it can represent any relation. The adoption vector $a$ indicates which of person $i$'s alters $j$ had adopted at time $t - 1$, and the denominator is the row sum, or number of outgoing ties. $E_{it}$ in @eq-exposure measures the proportion of a person's ties at time $t$ who had adopted the behavior by the prior time period. As described in @Valente2024, the exposure calculation can be extended by using a count (removing the denominator) or by weighting ties according to indirect connectivity, structural equivalence, strength (weak versus strong), homophily, Simmelian relations (alter-to-alter), or alter network properties such as centrality. The `exposure()` function enables users to calculate these alternatives through its arguments.
 
 There are other measures needed to estimate diffusion network effects. A network threshold [@valente_threshold_1996] is the proportion or number of adopters in an individual's network required for that individual to adopt. Although the observed exposure at adoption may coincide with this threshold, interval-based observation can make exposure overstate it. For example, a person whose threshold is two may be observed only after three peers adopted during the same interval; the observed exposure is then three even though the threshold was two [see @berryOpacityProblemSocial2019 for a detailed discussion].
 
@@ -47,7 +65,7 @@ In a nutshell, netdiffuseR provides methods for simulating, processing, analyzin
 
 # A tutorial on netdiffuseR
 
-This tutorial was developed using **R** version 4.5.1 [@R], **Quarto** version 1.6.42 [@Allaire_Quarto_2025], and **netdiffuseR** version 1.25.0. The multi-adoption and disadoption features demonstrated below were introduced in netdiffuseR version 1.23.0 and are available in the current CRAN release. Readers can find the Quarto document and all materials required to reproduce the paper at TBD.
+This tutorial was developed using **R** version 4.5.1 [@R], **Quarto** version 1.10.18 [@Allaire_Quarto_2025], and **netdiffuseR** version 1.25.1. The multi-adoption and disadoption features demonstrated below were introduced in netdiffuseR version 1.23.0 and are available in the current CRAN release. Readers can find the Quarto document and all materials required to reproduce the paper, including a container specification of the computing environment, at <https://github.com/gvegayon/netdiffuser-connections>.
 
 ## Analyzing existing data
 
@@ -177,7 +195,7 @@ exp_se <- exposure(kfam_diffnet, alt.graph = "se", valued = TRUE)
 exp_se[1:5, 1:6]
 ```
 
-Structural-equivalence scores are valued rather than binary, so we specify `valued = TRUE`. With some versions of the `Matrix` package, this calculation also produces an internal deprecation warning about coercing a `dgeMatrix` to a `dgCMatrix`. The warning does not indicate a problem with the calculated exposure, so the example suppresses this known internal warning explicitly.
+Structural-equivalence scores are valued rather than binary, so we specify `valued = TRUE`.
 
 \noindent
 **Attribute weighted.** Finally, this type of exposure can be used when a characteristic of adopters may make them more influential in the social contagion process. For example, people may be more influenced by older individuals than younger:
@@ -409,7 +427,7 @@ diffnet_3 <- rdiffnet(
 diffnet_3
 ```
 
-The output identifies the calculation as a multi-diffusion simulation and reports two behaviors, along with a final prevalence for each. The simulation uses discrete time, so some package versions emit a benign warning while storing times of adoption as integers. We suppress that implementation-level diagnostic here so that readers can run this introductory multi-adoption example cleanly. `rdiffnet()` simulates as many behaviors as there are entries in the `seed.p.adopt` list. The user may also notice a warning related to the coercion of `toa` to integer values; this warning is benign and can be ignored using the `suppressWarnings()` function. The issue has been submitted to the `netdiffuseR` development team and will be fixed in a future release.
+The output identifies the calculation as a multi-diffusion simulation and reports two behaviors, along with a final prevalence for each. `rdiffnet()` simulates as many behaviors as there are entries in the `seed.p.adopt` list.
 
 ::: {.callout-tip}
 In the current implementation of `rdiffnet()`, the multi-adoption module simulates behaviors independently. That is, the code above would be equivalent to simulating the same behavior twice. More complicated models in which behaviors are interdependent are supported via the dis-adoption parameter.
@@ -420,7 +438,7 @@ In the current implementation of `rdiffnet()`, the multi-adoption module simulat
 ```{r}
 #| label: simulation-multiadoption-process-4
 set.seed(1232)
-diffnet_4 <- suppressWarnings(rdiffnet(
+diffnet_4 <- rdiffnet(
   200, 10,
   seed.p.adopt = list(0.1, 0.15),
   threshold.dist = list(
@@ -429,7 +447,7 @@ diffnet_4 <- suppressWarnings(rdiffnet(
   ),
   seed.nodes = list("central", "random"),
   behavior   = list("tobacco", "alcohol")
-))
+)
 
 diffnet_4
 ```
@@ -441,13 +459,13 @@ As in the previous section, we can provide a specific network as input. Besides 
 ```{r}
 #| label: simulation-multiadoption-process-5
 set.seed(1233)
-diffnet_5 <- suppressWarnings(rdiffnet(
+diffnet_5 <- rdiffnet(
   seed.graph     = kfam_diffnet,
   seed.p.adopt   = list(0.1, 0.15),
   seed.nodes     = list("random", "random"),
   threshold.dist = runif(nvertices(kfam_diffnet), .3, .5),
   behavior       = list("Behavior 1", "Behavior 2")
-))
+)
 
 diffnet_5
 ```
@@ -587,13 +605,13 @@ Let's simulate a diffusion process with the disadoption function `one_only`:
 ```{r}
 #| label: disadoption-example-2
 set.seed(331)
-diffnet_7 <- suppressWarnings(rdiffnet(
+diffnet_7 <- rdiffnet(
   200, 10,
   disadopt     = one_only,
   seed.p.adopt = list(0.1, 0.1),
   seed.nodes   = list("random", "random"),
   behavior     = list("Behavior 1", "Behavior 2")
-))
+)
 diffnet_7
 ```
 
