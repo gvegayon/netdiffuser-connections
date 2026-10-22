@@ -7,7 +7,7 @@ This repository contains the materials to reproduce the paper "A netdiffuseR Tut
 To build the paper, you need the following software installed on your system:
 
 - **R** (version 4.4.0 or higher recommended)
-- **netdiffuseR** R package (version 1.23.0 or higher)
+- **netdiffuseR** R package (version 1.25.1 or higher)
 - **Quarto** (for document rendering)
 
 This repository also contains a [Devcontainer environment](.devcontainer) reproducing the exact system configuration during the development of the manuscript.
